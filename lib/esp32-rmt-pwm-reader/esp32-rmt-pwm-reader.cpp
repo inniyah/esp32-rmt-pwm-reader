@@ -9,6 +9,33 @@
 **/
 #include "esp32-rmt-pwm-reader.h"
 
+#if ESP_IDF_VERSION_MAJOR >= 5
+
+// The disappearance of RMTMEM in ESP-IDF v5 is part of a broader effort to
+// modernize and streamline the framework. Espressif made changes to the RMT
+// (Remote Control) peripheral to improve its functionality and align it with
+// updated standards. As we need to work with RMTMEM, we need to define it
+// manually.
+
+// See: https://github.com/FastLED/FastLED/pull/1620/commits/56751dbd1ad8034279e87129bd4c1261c3417bb5
+
+// This ensures the definition of gpio_matrix_out, which is now necessary.
+#include <rom/gpio.h>
+
+// Replicate the structure of RMTMEM for compatibility.
+// Copied from rmt_private.h with slight changes to match the idf 4.x syntax.
+typedef struct {
+    struct {
+        rmt_item32_t data32[SOC_RMT_MEM_WORDS_PER_CHANNEL];
+    } chan[SOC_RMT_CHANNELS_PER_GROUP];
+} rmt_block_mem_t;
+
+// This links it to the appropriate memory definition.
+// RMTMEM address is declared in <target>.peripherals.ld
+extern rmt_block_mem_t RMTMEM;
+
+#endif
+
 // globals in esp32_rmt_pwm_reader.cpp
 int _numberOfChannels;
 static pwm_channel_t *pwm_channels;
